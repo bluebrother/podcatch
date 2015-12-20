@@ -32,7 +32,11 @@ def catch(feed, verbose=False):
         print("Error retrieving RSS feed.")
         return
 
-    rss = ET.fromstring(content)
+    try:
+        rss = ET.fromstring(content)
+    except ET.ParseError:
+        print("XML parse error! Invalid feed?")
+        return
 
     version = None
     if 'version' in rss.attrib:
