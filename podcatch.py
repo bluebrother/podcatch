@@ -12,6 +12,7 @@ import urlparse
 import email.utils
 import os
 import time
+import argparse
 
 
 def catch(feed, verbose=False):
@@ -157,8 +158,17 @@ def read_serverlist(filename):
 def podcatch():
     '''Run podcatch.
     '''
-    for server in read_serverlist("serverlist"):
-        catch(server)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='Verbose output')
+    parser.add_argument('-s', '--serverlist',
+                        help='Specify serverlist file')
+    args = parser.parse_args()
+    serverlist = "serverlist"
+    if args.serverlist is not None:
+        serverlist = args.serverlist
+    for server in read_serverlist(serverlist):
+        catch(server, args.verbose)
 
 
 if __name__ == "__main__":
