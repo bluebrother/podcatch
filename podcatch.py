@@ -30,13 +30,13 @@ def catch(feed, verbose=False):
             content = remote.read()
         remote.close()
     except IOError:
-        print("Error retrieving RSS feed.")
+        print("Error retrieving RSS feed %s." % feed['name'])
         return
 
     try:
         rss = ET.fromstring(content)
     except ET.ParseError:
-        print("XML parse error! Invalid feed?")
+        print("XML parse error! Invalid feed %s?" % feed['name'])
         return
 
     version = None
