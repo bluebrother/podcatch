@@ -7,7 +7,7 @@
 # (c) 2015 Dominik Riebeling
 
 from xml.etree import ElementTree as ET
-import urllib
+import urllib2
 import urlparse
 import email.utils
 import os
@@ -22,7 +22,7 @@ def catch(feed, verbose=False):
         print("=" * 20)
         if verbose:
             print("Retrieving RSS %s" % feed['url'])
-        remote = urllib.urlopen(feed['url'])
+        remote = urllib2.urlopen(feed['url'])
         encoding = remote.headers.getparam("charset")
         if encoding is not None:
             content = remote.read().decode(encoding).encode("UTF-8")
@@ -68,7 +68,8 @@ def catch(feed, verbose=False):
     image = channel.find('image/url')
     if image is not None:
         imgfile = os.path.join(feed['name'], "folder.jpg")
-        urllib.urlretrieve(image.text, imgfile)
+        if not os.path.exists(imgfile):
+            download(image.text, imgfile)
 
     items = channel.findall('item')
     num = len(items)
@@ -117,12 +118,37 @@ def download(url, dest):
     timestamp of dest to use the retrieved date.
     Uses a temporary filename by adding the extension ".temp" during download,
     to avoid broken downloads resulting in a file present at dest.'''
-    hdr = urllib.urlretrieve(url, dest + ".temp")[1]
-    os.rename(dest + ".temp", dest)
-    if 'last-modified' in hdr:
-        lastmodified = email.utils.mktime_tz(
-            email.utils.parsedate_tz(hdr['last-modified']))
+    tmpfile = dest + ".temp"
+    request = urllib2.Request(url)
+    if os.path.exists(tmpfile):
+        length = os.path.getsize(tmpfile)
+        request.add_header("Range", "bytes=%s-" % length)
+    try:
+        hdl = urllib2.urlopen(request)
+    except urllib2.HTTPError as error:
+        if error.code == 416:  # Requested Range Not Satisfiable
+            request = urllib2.Request(url)
+            hdl = urllib2.urlopen(request)
+        else:
+            raise
+
+    mode = "wb"
+    if hdl.getcode() == 206:  # Partial Content
+        mode = "ab"
+    outhdl = open(tmpfile, mode)
+    while True:
+        data = hdl.read(0x2000)
+        outhdl.write(data)
+        if data is None or len(data) <= 0:
+            break
+
+    outhdl.close()
+    os.rename(tmpfile, dest)
+    lastmod = hdl.info().getheader("Last-Modified")
+    if lastmod is not None:
+        lastmodified = email.utils.mktime_tz(email.utils.parsedate_tz(lastmod))
         os.utime(dest, (lastmodified, lastmodified))
+    hdl.close()
 
 
 def date_to_local(date):
