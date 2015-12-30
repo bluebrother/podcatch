@@ -7,8 +7,12 @@
 # (c) 2015 Dominik Riebeling
 
 from xml.etree import ElementTree as ET
-import urllib2
-import urlparse
+try:
+    from urllib2 import Request, urlopen
+    import urlparse
+except ImportError:
+    from urllib.request import Request, urlopen
+    import urllib.parse as urlparse
 import email.utils
 import os
 import time
@@ -22,12 +26,8 @@ def catch(feed, verbose=False):
         print("=" * 20)
         if verbose:
             print("Retrieving RSS %s" % feed['url'])
-        remote = urllib2.urlopen(feed['url'])
-        encoding = remote.headers.getparam("charset")
-        if encoding is not None:
-            content = remote.read().decode(encoding).encode("UTF-8")
-        else:
-            content = remote.read()
+        remote = urlopen(feed['url'])
+        content = remote.read()
         remote.close()
     except IOError:
         print("Error retrieving RSS feed %s." % feed['name'])
@@ -82,7 +82,7 @@ def catch(feed, verbose=False):
         if enclosure is None:
             continue
 
-        title = item.find('title').text.encode('UTF-8')
+        title = item.find('title').text.encode('UTF-8').decode()
         # check for update?
         pubdate = item.find('pubDate')
         if pubdate is not None:
@@ -119,16 +119,16 @@ def download(url, dest):
     Uses a temporary filename by adding the extension ".temp" during download,
     to avoid broken downloads resulting in a file present at dest.'''
     tmpfile = dest + ".temp"
-    request = urllib2.Request(url)
+    request = Request(url)
     if os.path.exists(tmpfile):
         length = os.path.getsize(tmpfile)
         request.add_header("Range", "bytes=%s-" % length)
     try:
-        hdl = urllib2.urlopen(request)
-    except urllib2.HTTPError as error:
+        hdl = urlopen(request)
+    except HTTPError as error:
         if error.code == 416:  # Requested Range Not Satisfiable
-            request = urllib2.Request(url)
-            hdl = urllib2.urlopen(request)
+            request = Request(url)
+            hdl = urlopen(request)
         else:
             raise
 
@@ -144,8 +144,8 @@ def download(url, dest):
 
     outhdl.close()
     os.rename(tmpfile, dest)
-    lastmod = hdl.info().getheader("Last-Modified")
-    if lastmod is not None:
+    if "Last-Modified" in dict(hdl.info()):
+        lastmod = dict(hdl.info())["Last-Modified"]
         lastmodified = email.utils.mktime_tz(email.utils.parsedate_tz(lastmod))
         os.utime(dest, (lastmodified, lastmodified))
     hdl.close()
