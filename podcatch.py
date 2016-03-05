@@ -128,8 +128,15 @@ def download(url, dest):
         hdl = urlopen(request)
     except HTTPError as error:
         if error.code == 416:  # Requested Range Not Satisfiable
-            request = Request(url)
-            hdl = urlopen(request)
+            # If this happens the range does not exist. This usually means that
+            # the file has already been downloaded completely, thus the
+            # "remaining" range does not exist.
+            # If the server doesn't support the Range header it will ignore it
+            # and respond with 200 (see RFC2616).
+
+            # FIXME: retrieve server timestamp here as well.
+            os.rename(tmpfile, dest)
+            return
         else:
             raise
 
