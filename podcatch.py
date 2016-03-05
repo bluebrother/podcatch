@@ -83,7 +83,7 @@ def catch(feed, verbose=False):
         if enclosure is None:
             continue
 
-        title = item.find('title').text.encode('UTF-8').decode()
+        title = item.find('title').text
         # check for update?
         pubdate = item.find('pubDate')
         if pubdate is not None:
@@ -107,7 +107,7 @@ def catch(feed, verbose=False):
             outtxt = open(outfn + ".txt", "w")
             outtxt.write(title)
             outtxt.write("\n\n")
-            outtxt.write(item.find('description').text.encode('UTF-8'))
+            outtxt.write(item.find('description').text)
             outtxt.write("\n")
             outtxt.close()
 
