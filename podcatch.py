@@ -105,9 +105,16 @@ def catch(feed, verbose=False):
 
         if not os.path.exists(outfn + ".txt"):
             outtxt = open(outfn + ".txt", "w")
-            outtxt.write(title)
+            if type(title) != type(str()):
+                outtxt.write(title.encode("utf-8"))
+            else:
+                outtxt.write(title)
             outtxt.write("\n\n")
-            outtxt.write(item.find('description').text)
+            txt = item.find('description').text
+            if type(txt) != type(str()):
+                outtxt.write(txt.encode("utf-8"))
+            else:
+                outtxt.write(txt)
             outtxt.write("\n")
             outtxt.close()
 
