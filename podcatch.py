@@ -115,7 +115,7 @@ def catch(feed, verbose=False):
 def download(url, dest):
     '''Download url and store file as dest.
 
-    If the web server returns a LastModified header for the file set the
+    If the web server returns a Last-Modified header for the file set the
     timestamp of dest to use the retrieved date.
     Uses a temporary filename by adding the extension ".temp" during download,
     to avoid broken downloads resulting in a file present at dest.'''
@@ -145,8 +145,11 @@ def download(url, dest):
 
     outhdl.close()
     os.rename(tmpfile, dest)
-    if "Last-Modified" in dict(hdl.info()):
-        lastmod = dict(hdl.info())["Last-Modified"]
+    # Python2 and Python3 use different casing for headers dictionary.
+    # Create lower-case keys dictionary to use.
+    headers = {k.lower(): v for k, v in dict(hdl.info()).items()}
+    if "last-modified" in headers:
+        lastmod = headers["last-modified"]
         lastmodified = email.utils.mktime_tz(email.utils.parsedate_tz(lastmod))
         os.utime(dest, (lastmodified, lastmodified))
     hdl.close()
