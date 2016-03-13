@@ -20,7 +20,7 @@ import time
 import argparse
 
 
-def catch(feed, verbose=False):
+def catch(feed, outfolder, verbose=False):
     '''Podcatch the episodes of feed.
     '''
     try:
@@ -61,14 +61,15 @@ def catch(feed, verbose=False):
     builddate = channel.find('lastBuildDate')
     if builddate is not None:
         print("Build Date: %s" % time.asctime(date_to_local(builddate.text)))
+    feedfolder = os.path.join(outfolder, feed['name'])
 
-    if not os.path.exists(feed['name']):
-        os.makedirs(feed['name'])
+    if not os.path.exists(feedfolder):
+        os.makedirs(feedfolder)
 
     # channel image
     image = channel.find('image/url')
     if image is not None:
-        imgfile = os.path.join(feed['name'], "folder.jpg")
+        imgfile = os.path.join(feedfolder, "folder.jpg")
         if not os.path.exists(imgfile):
             download(image.text, imgfile)
 
@@ -92,7 +93,7 @@ def catch(feed, verbose=False):
 
         itemurl = enclosure.attrib['url']
         basefn = os.path.basename(urlparse.urlparse(itemurl).path)
-        outfn = os.path.join(feed['name'], basefn)
+        outfn = os.path.join(feedfolder, basefn)
         # FIXME: check for partial downloads (and resume if possible)
         # FIXME: use local file timestamp for modification check
         if not os.path.exists(outfn):
@@ -207,12 +208,18 @@ def podcatch():
                         help='Verbose output')
     parser.add_argument('-s', '--serverlist',
                         help='Specify serverlist file')
+    parser.add_argument('-o', '--outfolder',
+                        help='Specify output folder')
     args = parser.parse_args()
     serverlist = "serverlist"
+    if args.outfolder is None:
+        outfolder = os.getcwd()
+    else:
+        outfolder = args.outfolder
     if args.serverlist is not None:
         serverlist = args.serverlist
     for server in read_serverlist(serverlist):
-        catch(server, args.verbose)
+        catch(server, outfolder, args.verbose)
 
 
 if __name__ == "__main__":
