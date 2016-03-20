@@ -82,6 +82,10 @@ def catch(feed, outfolder, verbose=False):
     for index, item in enumerate(items):
         enclosure = item.find('enclosure')
         if enclosure is None:
+            print("ERROR: no enclosure in channel item, skipping")
+            continue
+        if not 'url' in enclosure.attrib:
+            print("ERROR: no URL in enclosure, skipping")
             continue
 
         title = item.find('title').text
@@ -97,9 +101,13 @@ def catch(feed, outfolder, verbose=False):
         # FIXME: check for partial downloads (and resume if possible)
         # FIXME: use local file timestamp for modification check
         if not os.path.exists(outfn):
-            print("Getting %s (%s, %s bytes)" % (
-                basefn, enclosure.attrib['type'],
-                enclosure.attrib['length']))
+            # some broken feeds omit the length attribute
+            if 'length' in enclosure.attrib and 'type' in enclosure.attrib:
+                print("Getting %s (%s, %s bytes)" % (
+                    basefn, enclosure.attrib['type'],
+                    enclosure.attrib['length']))
+            else:
+                print("Getting %s" % basefn)
             download(itemurl, outfn)
         elif verbose:
             print("Already have %s" % basefn)
