@@ -88,7 +88,10 @@ def catch(feed, outfolder, verbose=False):
             print("ERROR: no URL in enclosure, skipping")
             continue
 
-        title = item.find('title').text
+        title = item.find('title').text.strip()
+        # on Python2 the element can be str or unicode. Convert to unicode.
+        if type(title) != type(str()):
+            title = title.encode("utf-8")
         # check for update?
         pubdate = item.find('pubDate')
         if pubdate is not None:
@@ -114,10 +117,7 @@ def catch(feed, outfolder, verbose=False):
 
         if not os.path.exists(outfn + ".txt"):
             outtxt = open(outfn + ".txt", "w")
-            if type(title) != type(str()):
-                outtxt.write(title.encode("utf-8"))
-            else:
-                outtxt.write(title)
+            outtxt.write(title)
             outtxt.write("\n\n")
             txt = item.find('description').text
             if type(txt) != type(str()):
