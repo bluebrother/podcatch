@@ -19,7 +19,6 @@ Issues
 ------
 
 - categories aren't supported
-- no resume support for interrupted downloads
 - error handling is mostly lacking
 - all previously downloaded files are kept, no expiry support
 
