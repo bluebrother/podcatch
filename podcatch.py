@@ -71,7 +71,10 @@ def catch(feed, outfolder, verbose=False):
     if image is not None:
         imgfile = os.path.join(feedfolder, "folder.jpg")
         if not os.path.exists(imgfile):
-            download(image.text, imgfile)
+            try:
+                download(image.text, imgfile)
+            except HTTPError as error:
+                print("HTTP error %i: %s, skipping" % (error.code, imgfile))
 
     items = channel.findall('item')
     num = len(items)
@@ -111,7 +114,11 @@ def catch(feed, outfolder, verbose=False):
                     enclosure.attrib['length']))
             else:
                 print("Getting %s" % basefn)
-            download(itemurl, outfn)
+            try:
+                download(itemurl, outfn)
+            except HTTPError as error:
+                print("HTTP error %i: %s, skipping" % (error.code, itemurl))
+                continue
         elif verbose:
             print("Already have %s" % basefn)
 
