@@ -87,13 +87,13 @@ def catch(feed, outfolder, verbose=False):
         if enclosure is None:
             print("ERROR: no enclosure in channel item, skipping")
             continue
-        if not 'url' in enclosure.attrib:
+        if 'url' not in enclosure.attrib:
             print("ERROR: no URL in enclosure, skipping")
             continue
 
         title = item.find('title').text.strip()
         # on Python2 the element can be str or unicode. Convert to unicode.
-        if type(title) != type(str()):
+        if not isinstance(title, str):
             title = title.encode("utf-8")
         # check for update?
         pubdate = item.find('pubDate')
@@ -127,7 +127,7 @@ def catch(feed, outfolder, verbose=False):
             outtxt.write(title)
             outtxt.write("\n\n")
             txt = item.find('description').text
-            if type(txt) != type(str()):
+            if not isinstance(txt, str):
                 outtxt.write(txt.encode("utf-8"))
             else:
                 outtxt.write(txt)
