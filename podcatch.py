@@ -71,7 +71,8 @@ def catch(feed, outfolder, verbose=False):
     # channel image
     image = channel.find('image/url')
     if image is not None:
-        imgfile = os.path.join(feedfolder, "folder.jpg")
+        _, fileext = os.path.splitext(urlparse.urlparse(image.text).path)
+        imgfile = os.path.join(feedfolder, "folder%s" % fileext)
         if not os.path.exists(imgfile):
             try:
                 download(image.text, imgfile)
