@@ -9,12 +9,12 @@
 from __future__ import print_function
 from xml.etree import ElementTree as ET
 try:
-    from urllib2 import Request, urlopen, HTTPError
+    from urllib2 import Request, urlopen, HTTPError, URLError
     import urlparse
 except ImportError:
     from urllib.request import Request, urlopen
     import urllib.parse as urlparse
-    from urllib.error import HTTPError
+    from urllib.error import HTTPError, URLError
 import email.utils
 import os
 import sys
@@ -119,6 +119,9 @@ def catch(feed, outfolder, verbose=False):
                 download(itemurl, outfn)
             except HTTPError as error:
                 print("HTTP error %i: %s, skipping" % (error.code, itemurl))
+                continue
+            except URLError as error:
+                print("URL error: %s: %s, skipping" % (error.reason, itemurl))
                 continue
         elif verbose:
             print("Already have %s" % basefn)
