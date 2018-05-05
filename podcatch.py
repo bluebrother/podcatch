@@ -6,6 +6,7 @@
 #
 # (c) 2015 Dominik Riebeling
 
+from __future__ import print_function
 from xml.etree import ElementTree as ET
 try:
     from urllib2 import Request, urlopen, HTTPError
@@ -16,6 +17,7 @@ except ImportError:
     from urllib.error import HTTPError
 import email.utils
 import os
+import sys
 import time
 import argparse
 
@@ -104,12 +106,11 @@ def catch(feed, outfolder, verbose=False):
         itemurl = enclosure.attrib['url']
         basefn = os.path.basename(urlparse.urlparse(itemurl).path)
         outfn = os.path.join(feedfolder, basefn)
-        # FIXME: check for partial downloads (and resume if possible)
         # FIXME: use local file timestamp for modification check
         if not os.path.exists(outfn):
             # some broken feeds omit the length attribute
             if 'length' in enclosure.attrib and 'type' in enclosure.attrib:
-                print("Getting %s (%s, %s bytes)" % (
+                print("Getting '%s' (%s, %s bytes)" % (
                     basefn, enclosure.attrib['type'],
                     enclosure.attrib['length']))
             else:
@@ -144,9 +145,10 @@ def download(url, dest):
     to avoid broken downloads resulting in a file present at dest.'''
     tmpfile = dest + ".temp"
     request = Request(url)
+    resume = 0
     if os.path.exists(tmpfile):
-        length = os.path.getsize(tmpfile)
-        request.add_header("Range", "bytes=%s-" % length)
+        resume = os.path.getsize(tmpfile)
+        request.add_header("Range", "bytes=%s-" % resume)
     try:
         hdl = urlopen(request)
     except HTTPError as error:
@@ -167,9 +169,15 @@ def download(url, dest):
     if hdl.getcode() == 206:  # Partial Content
         mode = "ab"
     outhdl = open(tmpfile, mode)
+    total = int(hdl.info()['Content-Length']) + resume
+    length = resume
     while True:
         data = hdl.read(0x2000)
         outhdl.write(data)
+        length += 0x2000
+        if sys.stdout.isatty() is True:
+            print("%i / %i (%.1f%%)\r"
+                  % (length, total, 100. * length / total), end="")
         if data is None or len(data) <= 0:
             break
 
