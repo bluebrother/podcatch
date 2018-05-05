@@ -84,6 +84,15 @@ def catch(feed, outfolder, verbose=False):
     if verbose:
         print("Found %i items in channel" % num)
         print("=" * 20)
+    # check if the enclosures use different filenames. If not clashes will
+    # happen during download. In this case set a flag so we don't use the
+    # server filename, instead we use the title.
+    encurls = [x for x in
+               [os.path.basename(urlparse.urlparse(x.attrib['url']).path)
+                for x in [x.find('enclosure') for x in items]
+                if x is not None] if len(x) > 0]
+    rename = len(encurls) != len(set(encurls))
+
     # get all items
     for index, item in enumerate(items):
         enclosure = item.find('enclosure')
@@ -105,7 +114,13 @@ def catch(feed, outfolder, verbose=False):
         print("%s/%s, %s: Episode '%s'" % (index + 1, num, pub, title))
 
         itemurl = enclosure.attrib['url']
-        basefn = os.path.basename(urlparse.urlparse(itemurl).path)
+        if not rename:
+            basefn = os.path.basename(urlparse.urlparse(itemurl).path)
+        else:
+            invalidchars = ('<', '>', ':', '"', '/', '\\', '|', '?', '*')
+            basefn = "%s%s" % (
+                "".join([x if x not in invalidchars else '_' for x in title]),
+                os.path.splitext(urlparse.urlparse(itemurl).path)[1])
         outfn = os.path.join(feedfolder, basefn)
         # FIXME: use local file timestamp for modification check
         if not os.path.exists(outfn):
