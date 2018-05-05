@@ -114,6 +114,9 @@ def catch(feed, outfolder, verbose=False):
         print("%s/%s, %s: Episode '%s'" % (index + 1, num, pub, title))
 
         itemurl = enclosure.attrib['url']
+        if len(itemurl) == 0:
+            print("ERROR: URL is empty, skipping")
+            continue
         if not rename:
             basefn = os.path.basename(urlparse.urlparse(itemurl).path)
         else:
