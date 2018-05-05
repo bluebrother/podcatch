@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # This file is part of podcatch, a simple command line podcast catcher.
 # podcatch is subject to the GNU General Public License, version 2 or above.
