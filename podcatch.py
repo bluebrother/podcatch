@@ -149,12 +149,16 @@ def catch(feed, outfolder, verbose=False):
             outtxt = open(outfn + ".txt", "w")
             outtxt.write(title)
             outtxt.write("\n\n")
-            txt = item.find('description').text
-            if not isinstance(txt, str):
-                outtxt.write(txt.encode("utf-8"))
+            description = item.find('description')
+            if description:
+                txt = description.text
+                if not isinstance(txt, str):
+                    outtxt.write(txt.encode("utf-8"))
+                else:
+                    outtxt.write(txt)
+                outtxt.write("\n")
             else:
-                outtxt.write(txt)
-            outtxt.write("\n")
+                print("No description found.")
             outtxt.close()
 
 
