@@ -114,7 +114,7 @@ def catch(feed, outfolder, verbose=False):
         print("%s/%s, %s: Episode '%s'" % (index + 1, num, pub, title))
 
         itemurl = enclosure.attrib['url']
-        if len(itemurl) == 0:
+        if not itemurl:
             print("ERROR: URL is empty, skipping")
             continue
         if not rename:
@@ -150,7 +150,7 @@ def catch(feed, outfolder, verbose=False):
             outtxt.write(title)
             outtxt.write("\n\n")
             description = item.find('description')
-            if description:
+            if description is not None:
                 txt = description.text
                 if not isinstance(txt, str):
                     outtxt.write(txt.encode("utf-8"))
@@ -188,8 +188,7 @@ def download(url, dest):
             # FIXME: retrieve server timestamp here as well.
             os.rename(tmpfile, dest)
             return
-        else:
-            raise
+        raise
 
     mode = "wb"
     if hdl.getcode() == 206:  # Partial Content
@@ -204,7 +203,7 @@ def download(url, dest):
         if sys.stdout.isatty() is True:
             print("%i / %i (%.1f%%)\r"
                   % (length, total, 100. * length / total), end="")
-        if data is None or len(data) <= 0:
+        if data is None or not data:
             break
 
     outhdl.close()
