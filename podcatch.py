@@ -22,7 +22,7 @@ import time
 import argparse
 
 
-def catch(feed, outfolder, verbose=False):
+def catch(feed, outfolder, verbose=False, quiet=False):
     '''Podcatch the episodes of feed.
     '''
     try:
@@ -111,7 +111,8 @@ def catch(feed, outfolder, verbose=False):
         pubdate = item.find('pubDate')
         if pubdate is not None:
             pub = time.asctime(date_to_local(pubdate.text))
-        print("%s/%s, %s: Episode '%s'" % (index + 1, num, pub, title))
+        if not quiet:
+            print("%s/%s, %s: Episode '%s'" % (index + 1, num, pub, title))
 
         itemurl = enclosure.attrib['url']
         if not itemurl:
@@ -135,7 +136,7 @@ def catch(feed, outfolder, verbose=False):
             else:
                 print("Getting %s" % basefn)
             try:
-                download(itemurl, outfn)
+                download(itemurl, outfn, quiet)
             except HTTPError as error:
                 print("HTTP error %i: %s, skipping" % (error.code, itemurl))
                 continue
@@ -162,7 +163,7 @@ def catch(feed, outfolder, verbose=False):
             outtxt.close()
 
 
-def download(url, dest):
+def download(url, dest, quiet=False):
     '''Download url and store file as dest.
 
     If the web server returns a Last-Modified header for the file set the
@@ -200,7 +201,7 @@ def download(url, dest):
         data = hdl.read(0x2000)
         outhdl.write(data)
         length += 0x2000
-        if sys.stdout.isatty() is True:
+        if sys.stdout.isatty() is True and not quiet:
             print("%i / %i (%.1f%%)\r"
                   % (length, total, 100. * length / total), end="")
         if data is None or not data:
@@ -258,6 +259,8 @@ def podcatch():
                         help='Specify serverlist file')
     parser.add_argument('-o', '--outfolder',
                         help='Specify output folder')
+    parser.add_argument('-q', '--quiet', action='store_true',
+                        help='Less output')
     args = parser.parse_args()
     serverlist = "serverlist"
     if args.outfolder is None:
@@ -267,7 +270,7 @@ def podcatch():
     if args.serverlist is not None:
         serverlist = args.serverlist
     for server in read_serverlist(serverlist):
-        catch(server, outfolder, args.verbose)
+        catch(server, outfolder, args.verbose, args.quiet)
 
 
 if __name__ == "__main__":
