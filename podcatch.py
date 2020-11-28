@@ -223,8 +223,11 @@ def date_to_local(date):
     '''Convert date string (RFC2822 format) to local time tuple.
 
     The resulting tuple can be passed directly to time functions.'''
-    timestamp = email.utils.mktime_tz(email.utils.parsedate_tz(date))
-    return time.localtime(timestamp)
+    parsed = email.utils.parsedate_tz(date)
+    if parsed is not None:
+        return time.localtime(email.utils.mktime_tz(parsed))
+    print("WARNING: Invalid date string '%s', could not parse" % date)
+    return time.localtime(0)
 
 
 def read_serverlist(filename):
