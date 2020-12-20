@@ -32,8 +32,8 @@ def catch(feed, outfolder, verbose=False, quiet=False):
         remote = urlopen(feed['url'])
         content = remote.read()
         remote.close()
-    except IOError:
-        print("Error retrieving RSS feed %s." % feed['name'])
+    except (IOError, HTTPError) as error:
+        print("Error retrieving RSS feed %s: %s" % (feed['name'], error))
         return
 
     try:
