@@ -17,6 +17,7 @@ import sys
 import time
 import argparse
 
+USERAGENT = 'podcatch/1.0'
 
 def catch(feed, outfolder, verbose=False, quiet=False):
     '''Podcatch the episodes of feed.
@@ -25,7 +26,10 @@ def catch(feed, outfolder, verbose=False, quiet=False):
         print("=" * 20)
         if verbose:
             print("Retrieving RSS %s" % feed['url'])
-        remote = urlopen(feed['url'])
+        req = Request(
+            feed['url'],
+            headers={'User-Agent': USERAGENT})
+        remote = urlopen(req)
         content = remote.read()
         remote.close()
     except (IOError, HTTPError) as error:
@@ -167,7 +171,7 @@ def download(url, dest, quiet=False):
     Uses a temporary filename by adding the extension ".temp" during download,
     to avoid broken downloads resulting in a file present at dest.'''
     tmpfile = dest + ".temp"
-    request = Request(url)
+    request = Request(url, headers={'User-Agent': USERAGENT})
     resume = 0
     if os.path.exists(tmpfile):
         resume = os.path.getsize(tmpfile)
