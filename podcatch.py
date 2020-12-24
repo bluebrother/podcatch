@@ -8,13 +8,9 @@
 
 from __future__ import print_function
 from xml.etree import ElementTree as ET
-try:
-    from urllib2 import Request, urlopen, HTTPError, URLError
-    import urlparse
-except ImportError:
-    from urllib.request import Request, urlopen
-    import urllib.parse as urlparse
-    from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+import urllib.parse as urlparse
+from urllib.error import HTTPError, URLError
 import email.utils
 import os
 import sys
